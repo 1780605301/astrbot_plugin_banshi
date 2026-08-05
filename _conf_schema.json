@@ -1,4 +1,4 @@
-﻿{
+{
     "auto_start": {
         "description": "开机自启动",
         "type": "bool",
