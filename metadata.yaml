@@ -1,0 +1,6 @@
+name: 更好的B站搬石 
+display_name: 更好的B站搬石
+desc: 定时随机搬运B站视频到群聊，指定关键词搜索随机视频搬运，指定av/bv号视频搬运，订阅UP主更新自动搬运
+version: v1.1.0 
+author: momola
+repo: https://github.com/1780605301

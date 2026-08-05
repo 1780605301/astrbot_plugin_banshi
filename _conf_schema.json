@@ -1,0 +1,93 @@
+﻿{
+    "auto_start": {
+        "description": "开机自启动",
+        "type": "bool",
+        "default": true,
+        "hint": "启动 AstrBot 时自动开始定时搬石"
+    },
+    "scan_interval": {
+        "description": "扫描间隔（秒）",
+        "type": "int",
+        "default": 3600,
+        "hint": "每次定时搬石之间的等待时间，单位为秒，最小10秒"
+    },
+    "max_duration": {
+        "description": "最大视频时长（秒）",
+        "type": "int",
+        "default": 600,
+        "hint": "超过此时长的视频会被跳过，默认600秒（10分钟）"
+    },
+    "max_pages": {
+        "description": "搜索页数",
+        "type": "int",
+        "default": 15,
+        "hint": "搜索B站时最多翻几页，页数越多可选视频越多，但速度越慢"
+    },
+    "delete_after_send": {
+        "description": "发送后删除视频文件",
+        "type": "bool",
+        "default": true,
+        "hint": "发送视频后是否自动删除本地文件，建议开启以节省磁盘空间"
+    },
+    "compress_video": {
+        "description": "自动压缩超大视频",
+        "type": "bool",
+        "default": true,
+        "hint": "视频文件超过大小限制时自动用ffmpeg压缩后再发送"
+    },
+    "max_send_size_mb": {
+        "description": "视频发送大小上限（MB）",
+        "type": "int",
+        "default": 100,
+        "hint": "超过该大小的视频会被自动压缩，QQ视频消息通常限制100MB。get指令会强制压缩"
+    },
+    "sub_check_interval": {
+        "description": "订阅检查间隔（秒）",
+        "type": "int",
+        "default": 600,
+        "hint": "每隔多久检查一次已订阅UP主是否有新投稿，最小60秒"
+    },
+    "sub_max_duration": {
+        "description": "订阅视频最大时长（秒）",
+        "type": "int",
+        "default": 1200,
+        "hint": "超过此时长的UP主新视频会跳过，默认1200秒（20分钟）"
+    },
+    "sub_fresh_days": {
+        "description": "订阅新鲜期（天）",
+        "type": "int",
+        "default": 3,
+        "hint": "只搬最近N天内发布的新视频，更早的跳过；设为0则不限制"
+    },
+    "search_keywords": {
+        "description": "搜索关键词列表",
+        "type": "list",
+        "default": [
+            "咕咕嘎嘎",
+            "凑企鹅",
+            "高松灯",
+            "哈基米",
+            "大狗叫",
+            "叮咚鸡"
+        ],
+        "hint": "B站搜索使用的关键词，每次随机选一个关键词搜索视频"
+    },
+    "blacklist_groups": {
+        "description": "黑名单群号列表",
+        "type": "list",
+        "default": [],
+        "hint": "这些群不会收到定时搬石的视频推送"
+    },
+    "quiet_hours_start": {
+        "description": "免打扰开始时间",
+        "type": "string",
+        "default": "",
+        "hint": "格式 HH:MM，如 23:00。留空表示不启用免打扰。在此时段内定时任务不会推送视频"
+    },
+    "quiet_hours_end": {
+        "description": "免打扰结束时间",
+        "type": "string",
+        "default": "",
+        "hint": "格式 HH:MM，如 08:00。支持跨午夜，如开始23:00结束08:00表示晚11点到早8点不推送"
+    }
+}
