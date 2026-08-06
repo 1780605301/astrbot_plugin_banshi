@@ -10,50 +10,54 @@
 
 ## 指令列表
 
-### 基础控制
+> **权限说明**：以下指令中，`now` / `list` / `search` / `get` 无权限限制，所有人可用；其余指令需要**管理员权限**。
 
-/bilibanshi on 开启定时搬石（开机自启动）
-/bilibanshi off 关闭定时搬石
-/bilibanshi now 立即随机搬一个视频并发送到当前聊天（不等待定时任务，只发当前会话）
+> **别名**：所有 `/bilibanshi` 指令均可使用 `/banshi` 替代，例如 `/banshi now`、`/banshi search 关键词`。
+
+### 基础控制 🔒
+
+/bilibanshi on  /banshi on   开启定时搬石（开机自启动）
+/bilibanshi off  /banshi off  关闭定时搬石
+/bilibanshi now  /banshi now  立即随机搬一个视频并发送到当前聊天
 
 ### 指定关键词搬石
 
-/bilibanshi search <关键词> [序号]
+/bilibanshi search <关键词> [序号]  /banshi search <关键词> [序号]
   按指定关键词搜索并搬一个视频（不指定序号时随机选一个结果）
-  例: /bilibanshi search 高松灯 /bilibanshi search 搞笑 3
+  例: /bilibanshi search 高松灯  /banshi search 搞笑 3
 
 ### 指定BV号/AV号下载
 
-/bilibanshi get <BV号|AV号|视频链接>
+/bilibanshi get <BV号|AV号|视频链接>  /banshi get <BV号|AV号|视频链接>
   解析并下载指定视频，自动压缩后发送到当前聊天
-  例: /bilibanshi get BV1GJ411x7h7 /bilibanshi get av170001
+  例: /bilibanshi get BV1GJ411x7h7  /banshi get av170001
 
-### UP主订阅
+### UP主订阅 🔒
 
-/bilibanshi sub add <UID或昵称> 订阅UP主，之后其新投稿会自动下载压缩并推送到所有群
-/bilibanshi sub remove <UID或昵称> 取消订阅
-/bilibanshi sub list 查看已订阅列表
+/bilibanshi sub add <UID或昵称>  /banshi sub add <UID或昵称>  订阅UP主
+/bilibanshi sub remove <UID或昵称>  /banshi sub remove <UID或昵称>  取消订阅
+/bilibanshi sub list  /banshi sub list  查看已订阅列表
   说明: 订阅时会把当前最新投稿记为已推送，从下一次更新开始推送；每次最多推送3个新视频
   说明: 基于B站搜索接口实现，新视频发布后搜索索引可能有几分钟延迟
   说明: 只搬最近N天内发布的新视频（sub_fresh_days，默认3天），更早的旧视频直接跳过
   配置: sub_check_interval 检查间隔(秒,默认600)；sub_max_duration 视频最大时长(秒,默认1200)；sub_fresh_days 新鲜期(天,默认3,0为不限)
 
-### 配置管理
+### 配置管理 🔒
 
-/bilibanshi list 查看当前状态
-/bilibanshi interval <秒> 设置搬石间隔（如 3600，最小10秒）
-/bilibanshi maxduration <秒> 设置视频最大时长（默认600秒/10分钟）
-/bilibanshi clean 手动清理临时文件
+/bilibanshi list  /banshi list  查看当前状态
+/bilibanshi interval <秒>  /banshi interval <秒>  设置搬石间隔（最小10秒）
+/bilibanshi maxduration <秒>  /banshi maxduration <秒>  设置视频最大时长（默认600秒）
+/bilibanshi clean  /banshi clean  手动清理临时文件
 
-### 关键词管理
+### 关键词管理 🔒
 
-/bilibanshi keyword add <关键词> 添加预设搜索关键词
-/bilibanshi keyword remove <关键词> 删除预设搜索关键词
+/bilibanshi keyword add <关键词>  /banshi keyword add <关键词>  添加预设搜索关键词
+/bilibanshi keyword remove <关键词>  /banshi keyword remove <关键词>  删除预设搜索关键词
 
-### 黑名单管理
+### 黑名单管理 🔒
 
-/bilibanshi blacklist add <群号> 添加黑名单群
-/bilibanshi blacklist remove <群号> 移除黑名单群
+/bilibanshi blacklist add <群号>  /banshi blacklist add <群号>  添加黑名单群
+/bilibanshi blacklist remove <群号>  /banshi blacklist remove <群号>  移除黑名单群
 
 ## 功能说明
 
