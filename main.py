@@ -844,7 +844,7 @@ class BilibiliPolluterPlugin(Star):
         logger.info("已发送到当前聊天")
 
     async def _send_to_all_groups(self, file_path: str, video_info: Dict[str, Any], prefix: str = "【B站搬石】"):
-        """发送到所有已绑定的群（带并发控制和错误处理）"""
+        """发送到所有已绑定的群（串行发送，群之间带延迟防止风控）"""
         blacklist = set(str(b) for b in self.config.get('blacklist_groups', []))
         
         if not self.bound_groups:
@@ -854,26 +854,25 @@ class BilibiliPolluterPlugin(Star):
         chain = self._create_video_message(video_info, file_path, prefix)
         message_chain = MessageChain(chain)
         
-        # 使用信号量控制并发发送（最多同时发3个群）
-        send_semaphore = Semaphore(3)
+        # 群间发送延迟（秒），防风控
+        send_delay = self.config.get('send_delay', 3)
+        count = 0
         
-        async def send_to_group(group_id: str, umo: str):
-            if group_id in blacklist:
-                logger.debug(f"群 {group_id} 在黑名单中，跳过")
-                return
+        for gid, umo in self.bound_groups.items():
+            if gid in blacklist:
+                logger.debug(f"群 {gid} 在黑名单中，跳过")
+                continue
             
-            async with send_semaphore:
-                try:
-                    await self.context.send_message(umo, message_chain)
-                    logger.info(f"已发送到群 {group_id}")
-                except Exception as e:
-                    logger.error(f"发送到群 {group_id} 失败: {e}")
-                # 群之间延迟
-                await asyncio.sleep(1)
-        
-        # 并发发送
-        tasks = [send_to_group(gid, umo) for gid, umo in self.bound_groups.items()]
-        await asyncio.gather(*tasks, return_exceptions=True)
+            try:
+                await self.context.send_message(umo, message_chain)
+                count += 1
+                logger.info(f"已发送到群 {gid} ({count}/{len(self.bound_groups)})")
+            except Exception as e:
+                logger.error(f"发送到群 {gid} 失败: {e}")
+            
+            # 非最后一个群则等待延迟
+            if count > 0:
+                await asyncio.sleep(send_delay)
 
     # ==================== UP主订阅部分 ====================
 
@@ -1194,9 +1193,8 @@ class BilibiliPolluterPlugin(Star):
 
     # ==================== 指令区 ====================
 
-    @filter.command("bilibanshi on")
-    @filter.command("banshi on")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi on", alias={"banshi on"})
     async def turn_on(self, event: AstrMessageEvent):
         """开启搬石"""
         if self.running:
@@ -1207,9 +1205,8 @@ class BilibiliPolluterPlugin(Star):
         self.task = asyncio.create_task(self._timer_task())
         yield event.plain_result("B站搬石已开启 (1分钟一次)")
 
-    @filter.command("bilibanshi off")
-    @filter.command("banshi off")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi off", alias={"banshi off"})
     async def turn_off(self, event: AstrMessageEvent):
         """关闭搬石"""
         if not self.running:
@@ -1228,16 +1225,14 @@ class BilibiliPolluterPlugin(Star):
             self.task = None
         yield event.plain_result("B站搬石已关闭")
 
-    @filter.command("bilibanshi now")
-    @filter.command("banshi now")
+    @filter.command("bilibanshi now", alias={"banshi now"})
     async def scan_now(self, event: AstrMessageEvent):
         """立即执行一次（发送到当前聊天）"""
         yield event.plain_result("开始搬石...")
         async for result in self._scan_and_download(event):
             yield result
 
-    @filter.command("bilibanshi search")
-    @filter.command("banshi search")
+    @filter.command("bilibanshi search", alias={"banshi search"})
     async def search_keyword_fetch(self, event: AstrMessageEvent):
         """按指定关键词搬石: /bilibanshi search <关键词> [序号]"""
         parts = event.message_str.strip().split()
@@ -1283,8 +1278,7 @@ class BilibiliPolluterPlugin(Star):
             yield result
         await self._cleanup_after_send(file_path)
 
-    @filter.command("bilibanshi get")
-    @filter.command("banshi get")
+    @filter.command("bilibanshi get", alias={"banshi get"})
     async def get_by_bvid(self, event: AstrMessageEvent):
         """按BV号/AV号下载视频并压缩发送: /bilibanshi get <BV号|AV号|链接>"""
         parts = event.message_str.strip().split()
@@ -1315,9 +1309,8 @@ class BilibiliPolluterPlugin(Star):
             yield result
         await self._cleanup_after_send(file_path)
 
-    @filter.command("bilibanshi sub")
-    @filter.command("banshi sub")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi sub", alias={"banshi sub"})
     async def manage_subscription(self, event: AstrMessageEvent):
         """订阅UP主: /bilibanshi sub add <UID或昵称> | remove <UID> | list"""
         parts = event.message_str.strip().split()
@@ -1384,8 +1377,8 @@ class BilibiliPolluterPlugin(Star):
         else:
             yield event.plain_result("未知操作，请使用 add / remove / list")
 
-    @filter.command("bilibanshi list")
-    @filter.command("banshi list")
+    @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi list", alias={"banshi list"})
     async def list_status(self, event: AstrMessageEvent):
         """查看当前状态"""
         max_duration = self.config.get('max_duration', 600)
@@ -1408,9 +1401,55 @@ class BilibiliPolluterPlugin(Star):
         
         yield event.plain_result("\n".join(status))
 
-    @filter.command("bilibanshi blacklist")
-    @filter.command("banshi blacklist")
+    @filter.command("bilibanshi help", alias={"banshi help", "bilibanshi"})
+    async def show_help(self, event: AstrMessageEvent):
+        """显示帮助"""
+        help_text = """=== B站搬石 v1.1.1 ===
+
+👤 全员可用:
+/banshi — 显示本帮助
+/banshi now — 立即随机搬一个视频
+/banshi search <关键词> [序号] — 搜索搬石
+/banshi get <BV号|AV号|链接> — 下载指定视频
+
+🔒 管理员:
+/banshi list — 查看状态
+/banshi sub list — 查看订阅
+/banshi sub add/remove — 订阅管理
+/banshi on / off — 开关搬石
+/banshi keyword add/remove — 关键词管理
+/banshi blacklist add/remove — 黑名单管理
+/banshi interval <秒> — 设置间隔
+/banshi maxduration <秒> — 最大时长
+/banshi clean — 清理临时文件"""
+
+        yield event.plain_result(help_text)
+
+    @filter.regex(r"^/banshi$")
+    async def banshi_help(self, event: AstrMessageEvent):
+        """精确匹配 /banshi（无参数）显示帮助"""
+        help_text = """=== B站搬石 v1.1.1 ===
+
+👤 全员可用:
+/banshi — 显示本帮助
+/banshi now — 立即随机搬一个视频
+/banshi search <关键词> [序号] — 搜索搬石
+/banshi get <BV号|AV号|链接> — 下载指定视频
+
+🔒 管理员:
+/banshi list — 查看状态
+/banshi sub list — 查看订阅
+/banshi sub add/remove — 订阅管理
+/banshi on / off — 开关搬石
+/banshi keyword add/remove — 关键词管理
+/banshi blacklist add/remove — 黑名单管理
+/banshi interval <秒> — 设置间隔
+/banshi maxduration <秒> — 最大时长
+/banshi clean — 清理临时文件"""
+        yield event.plain_result(help_text)
+
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi blacklist", alias={"banshi blacklist"})
     async def manage_blacklist(self, event: AstrMessageEvent):
         """管理黑名单: /bilibanshi blacklist add 123456 或 /bilibanshi blacklist remove 123456"""
         parts = event.message_str.strip().split()
@@ -1445,9 +1484,8 @@ class BilibiliPolluterPlugin(Star):
         else:
             yield event.plain_result("未知操作，请使用 add 或 remove")
 
-    @filter.command("bilibanshi keyword")
-    @filter.command("banshi keyword")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi keyword", alias={"banshi keyword"})
     async def manage_keyword(self, event: AstrMessageEvent):
         """管理关键词: /bilibanshi keyword add 搞笑 或 /bilibanshi keyword remove 搞笑"""
         parts = event.message_str.strip().split()
@@ -1479,9 +1517,8 @@ class BilibiliPolluterPlugin(Star):
         else:
             yield event.plain_result("未知操作，请使用 add 或 remove")
 
-    @filter.command("bilibanshi interval")
-    @filter.command("banshi interval")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi interval", alias={"banshi interval"})
     async def set_interval(self, event: AstrMessageEvent):
         """设置扫描间隔(秒): /bilibanshi interval 60"""
         parts = event.message_str.strip().split()
@@ -1501,9 +1538,8 @@ class BilibiliPolluterPlugin(Star):
         except ValueError:
             yield event.plain_result("请输入有效的数字")
 
-    @filter.command("bilibanshi maxduration")
-    @filter.command("banshi maxduration")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi maxduration", alias={"banshi maxduration"})
     async def set_max_duration(self, event: AstrMessageEvent):
         """设置最大时长（秒）: /bilibanshi maxduration 600"""
         parts = event.message_str.strip().split()
@@ -1523,9 +1559,8 @@ class BilibiliPolluterPlugin(Star):
         except ValueError:
             yield event.plain_result("请输入有效的数字")
 
-    @filter.command("bilibanshi clean")
-    @filter.command("banshi clean")
     @filter.permission_type(filter.PermissionType.ADMIN)
+    @filter.command("bilibanshi clean", alias={"banshi clean"})
     async def clean_temp_files(self, event: AstrMessageEvent):
         """手动清理临时文件"""
         count = len(self.temp_files)
