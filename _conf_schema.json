@@ -89,5 +89,17 @@
         "type": "string",
         "default": "",
         "hint": "格式 HH:MM，如 08:00。支持跨午夜，如开始23:00结束08:00表示晚11点到早8点不推送"
+    },
+    "send_delay": {
+        "description": "群发延迟（秒）",
+        "type": "int",
+        "default": 3,
+        "hint": "向多个群发送视频时，群之间的等待间隔，防风控"
+    },
+    "send_with_text": {
+        "description": "发送时附带视频信息",
+        "type": "bool",
+        "default": true,
+        "hint": "发送视频时是否附带标题、UP主、链接等文字信息。关闭后只发纯视频"
     }
 }

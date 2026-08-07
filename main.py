@@ -812,23 +812,26 @@ class BilibiliPolluterPlugin(Star):
 
     def _create_video_message(self, video_info: Dict[str, Any], file_path: str, prefix: str = "【B站搬石】") -> List[Any]:
         """创建视频消息链"""
-        title = video_info.get('title', '未知标题')
-        author = video_info.get('author', '未知UP主')
-        play = video_info.get('play_count', 0)
-        bvid = video_info.get('bvid', '')
-        duration = video_info.get('duration', '未知')
+        chain = []
         
-        # 文字消息
-        text_msg = (
-            f"{prefix}\n"
-            f"标题：{title}\n"
-            f"UP主：{author}\n"
-            f"时长：{duration}\n"
-            f"播放量：{play}\n"
-            f"链接：https://www.bilibili.com/video/{bvid}"
-        )
-        
-        chain = [Plain(text_msg)]
+        # 根据配置决定是否附带文字信息
+        if self.config.get('send_with_text', True):
+            title = video_info.get('title', '未知标题')
+            author = video_info.get('author', '未知UP主')
+            play = video_info.get('play_count', 0)
+            bvid = video_info.get('bvid', '')
+            duration = video_info.get('duration', '未知')
+            
+            # 文字消息
+            text_msg = (
+                f"{prefix}\n"
+                f"标题：{title}\n"
+                f"UP主：{author}\n"
+                f"时长：{duration}\n"
+                f"播放量：{play}\n"
+                f"链接：https://www.bilibili.com/video/{bvid}"
+            )
+            chain.append(Plain(text_msg))
         
         # 检查文件是否存在
         if file_path and os.path.exists(file_path) and os.path.getsize(file_path) > 0:
