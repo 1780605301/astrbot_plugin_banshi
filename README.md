@@ -10,54 +10,50 @@
 
 ## 指令列表
 
-> **权限说明**：以下指令中，`now` / `list` / `search` / `get` 无权限限制，所有人可用；其余指令需要**管理员权限**。
+> 💡 所有 `/bilibanshi` 指令均支持简写别名 `/banshi`，例如 `/banshi on`、`/banshi get BVxxxx`。
+> `/banshi`（无参数）可查看本帮助。
 
-> **别名**：所有 `/bilibanshi` 指令均可使用 `/banshi` 替代，例如 `/banshi now`、`/banshi search 关键词`。
+### 👤 全员可用
 
-### 基础控制 🔒
+| 指令 | 说明 |
+|------|------|
+| `/bilibanshi` / `/banshi` | 显示本帮助 |
+| `/bilibanshi now` | 立即随机搬一个视频到当前聊天 |
+| `/bilibanshi search <关键词> [序号]` | 按关键词搜索并搬视频（不指定序号则随机） |
+| `/bilibanshi get <BV号\|AV号\|链接>` | 解析并下载指定视频发送到当前聊天 |
 
-/bilibanshi on  /banshi on   开启定时搬石（开机自启动）
-/bilibanshi off  /banshi off  关闭定时搬石
-/bilibanshi now  /banshi now  立即随机搬一个视频并发送到当前聊天
+### 🔒 管理员专用
 
-### 指定关键词搬石
+| 指令 | 说明 |
+|------|------|
+| `/bilibanshi list` | 查看当前运行状态与配置 |
+| `/bilibanshi sub list` | 查看已订阅UP主列表 |
+| `/bilibanshi on` | 开启定时搬石（开机自启动） |
+| `/bilibanshi off` | 关闭定时搬石 |
+| `/bilibanshi sub add <UID或昵称>` | 订阅UP主，新投稿自动推送 |
+| `/bilibanshi sub remove <UID或昵称>` | 取消订阅UP主 |
+| `/bilibanshi keyword add <关键词>` | 添加预设搜索关键词 |
+| `/bilibanshi keyword remove <关键词>` | 删除预设搜索关键词 |
+| `/bilibanshi blacklist add <群号>` | 添加黑名单群 |
+| `/bilibanshi blacklist remove <群号>` | 移除黑名单群 |
+| `/bilibanshi interval <秒>` | 设置搬石间隔（最小10秒） |
+| `/bilibanshi maxduration <秒>` | 设置视频最大时长（默认600秒） |
+| `/bilibanshi clean` | 手动清理临时文件 |
 
-/bilibanshi search <关键词> [序号]  /banshi search <关键词> [序号]
-  按指定关键词搜索并搬一个视频（不指定序号时随机选一个结果）
-  例: /bilibanshi search 高松灯  /banshi search 搞笑 3
+> **UP主订阅说明**: 订阅时会把当前最新投稿记为已推送，从下一次更新开始推送；每次最多推送3个新视频。基于B站搜索接口，新视频发布后可能有几分钟延迟。只搬最近N天内发布的新视频（sub_fresh_days，默认3天），更早的旧视频直接跳过。
 
-### 指定BV号/AV号下载
+---
 
-/bilibanshi get <BV号|AV号|视频链接>  /banshi get <BV号|AV号|视频链接>
-  解析并下载指定视频，自动压缩后发送到当前聊天
-  例: /bilibanshi get BV1GJ411x7h7  /banshi get av170001
+## 更新日志
 
-### UP主订阅 🔒
+### v1.1.2
+- 新增 `/banshi`（无参数）帮助指令，显示完整指令列表
+- README 指令列表重新排版，按全员可用/管理员专用分类
 
-/bilibanshi sub add <UID或昵称>  /banshi sub add <UID或昵称>  订阅UP主
-/bilibanshi sub remove <UID或昵称>  /banshi sub remove <UID或昵称>  取消订阅
-/bilibanshi sub list  /banshi sub list  查看已订阅列表
-  说明: 订阅时会把当前最新投稿记为已推送，从下一次更新开始推送；每次最多推送3个新视频
-  说明: 基于B站搜索接口实现，新视频发布后搜索索引可能有几分钟延迟
-  说明: 只搬最近N天内发布的新视频（sub_fresh_days，默认3天），更早的旧视频直接跳过
-  配置: sub_check_interval 检查间隔(秒,默认600)；sub_max_duration 视频最大时长(秒,默认1200)；sub_fresh_days 新鲜期(天,默认3,0为不限)
-
-### 配置管理 🔒
-
-/bilibanshi list  /banshi list  查看当前状态
-/bilibanshi interval <秒>  /banshi interval <秒>  设置搬石间隔（最小10秒）
-/bilibanshi maxduration <秒>  /banshi maxduration <秒>  设置视频最大时长（默认600秒）
-/bilibanshi clean  /banshi clean  手动清理临时文件
-
-### 关键词管理 🔒
-
-/bilibanshi keyword add <关键词>  /banshi keyword add <关键词>  添加预设搜索关键词
-/bilibanshi keyword remove <关键词>  /banshi keyword remove <关键词>  删除预设搜索关键词
-
-### 黑名单管理 🔒
-
-/bilibanshi blacklist add <群号>  /banshi blacklist add <群号>  添加黑名单群
-/bilibanshi blacklist remove <群号>  /banshi blacklist remove <群号>  移除黑名单群
+### v1.1.1
+- 新增 `/banshi` 简写别名，所有指令均可使用（如 `/banshi on`、`/banshi get BVxxxx`）
+- 管理类指令增加管理员权限限制（on/off/sub/keyword/blacklist/interval/maxduration/clean）
+- now/search/get/list/sub list 保持全员可用
 
 ## 功能说明
 

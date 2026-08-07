@@ -24,7 +24,7 @@ from astrbot.core.message.message_event_result import MessageChain
 from astrbot.api import star
 
 
-@register("更好的B站搬石", "momola", "定时随机搬运B站视频到群聊，指定关键词搜索随机视频搬运，指定av/bv号视频搬运，订阅UP主更新自动搬运", "1.1.0")
+@register("astrbot_plugin_banshi", "momola", "定时随机搬运B站视频到群聊，指定关键词搜索随机视频搬运，指定av/bv号视频搬运，订阅UP主更新自动搬运", "1.1.0")
 class BilibiliPolluterPlugin(Star):
     def __init__(self, context: Context, config: AstrBotConfig):
         super().__init__(context)
