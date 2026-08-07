@@ -1227,10 +1227,21 @@ class BilibiliPolluterPlugin(Star):
 
     @filter.command("bilibanshi now", alias={"banshi now"})
     async def scan_now(self, event: AstrMessageEvent):
-        """立即执行一次（发送到当前聊天）"""
+        """立即执行一次（只发送到当前聊天，不推送所有群）"""
         yield event.plain_result("开始搬石...")
-        async for result in self._scan_and_download(event):
+        
+        # 执行下载
+        success, file_path, video_info = await self._execute_scan_and_download(event)
+        if not success:
+            yield event.plain_result("❌ 没有找到合适的视频或下载失败")
+            return
+        
+        # 只发送到当前聊天（不调用 _send_to_all_groups）
+        async for result in self._send_to_current_chat(event, file_path, video_info):
             yield result
+        
+        # 清理文件
+        await self._cleanup_after_send(file_path)
 
     @filter.command("bilibanshi search", alias={"banshi search"})
     async def search_keyword_fetch(self, event: AstrMessageEvent):
